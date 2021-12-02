@@ -20,12 +20,14 @@ export default class ProductRouter{
             const {id,name,photo,priceUnit,cant,categoryId,categoryName} = value;
             data.push({id,cant,category:{id:categoryId,name:categoryName},photo,name,priceUnit});
         });
+        conextion.destroy();
         res.send(data);
     }
     public async updateCant(req:Request,res:Response):Promise<void>{
         const {cant = 0}= req.body;
         const {id}=req.params;
         const conexion = await new Conexion().connection();
+        conexion.destroy();
         res.send(await conexion.query('UPDATE producto SET cantidad=? WHERE id = ?',[cant,id]));
     }
     public async getProductsByCategory(req:Request,res:Response){
@@ -82,10 +84,10 @@ export default class ProductRouter{
                 }
                 res.status(200).send(result);
             }else{
-                res.status(200).send({message:'Nada'})
+                res.status(511).send({error:511,message:'Necesitas autentificacion para acceder a la informacion, verifica la propiedad key'});
             }
-        }catch(ex){
-            res.status(411).send({ex});
+        }catch(e){
+            res.status(500).send({error:500, message:'Se a producido un error',exception:e});
         }
     }
     public async postSalesProduct(req:Request,res:Response):Promise<void>{
@@ -107,11 +109,10 @@ export default class ProductRouter{
                 let clientId = client?client.id:0;
                 if(!clientId){
                     const {name,phone,direction} = personData;
-                    await conexion.query('INSERT INTO persona(cedula,nombre,telefono,direccion) VALUES(?,?,?,?)',[identification,name,phone,direction]);
-                    const person = await conexion.query('SELECT id FROM persona ORDER BY id DESC LIMIT 1');
-                    await conexion.query('INSERT INTO cliente(persona_id) VALUES(?)',[person[0].id]);
-                    const client= await conexion.query('SELECT id FROM cliente ORDER BY id DESC LIMIT 1');
-                    clientId = client[0].id;
+                    const insert = await conexion.query('INSERT INTO persona(cedula,nombre,telefono,direccion) VALUES(?,?,?,?)',[identification,name,phone,direction]);
+                    
+                    const client= await conexion.query('INSERT INTO cliente(persona_id) VALUES(?)',[insert.insertId]);
+                    clientId = client.insertId;
                 }
                     await conexion.query(`INSERT INTO factura_venta(cliente_id,precio_a_pagar,fecha,iva) VALUES(?,?,?,?)`,[clientId,priceToPay,new Date(),iva]);
                     const {id}= (await conexion.query(`SELECT id FROM factura_venta ORDER BY id DESC LIMIT 1`))[0];
@@ -119,6 +120,7 @@ export default class ProductRouter{
                         const {cant,price,productId} = value;
                         await conexion.query(`INSERT INTO venta(factura_venta_id,precio,cantidad,producto_id) VALUES(?,?,?,?)`,[id,price,cant,productId]);
                     }
+                    conexion.destroy();
                     res.status(200).send({identification,sales,priceToPay,iva});
             }catch(e){
                 
@@ -135,6 +137,7 @@ export default class ProductRouter{
             try{
                 const con = await new Conexion().connection();
                 await con.query('INSERT INTO producto(nombre,foto,precio_unitario,cantidad,categoria_id) VALUES(?,?,?,?,?)',[name,photo,price_unit,cant,category]);
+                con.destroy();
                 res.status(200).send({code:200,message:'Se a registrado correctamente el nuevo producto'});
             }catch(e){
                 res.status(500).send({code:500, message:'Se a producido un error',exception:e});

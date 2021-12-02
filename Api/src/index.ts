@@ -1,6 +1,7 @@
 import {Application} from 'express';
 import EmployeeController from './controllers/Employee.controller';
 import IndexController from './controllers/Index.controller';
+import PedidosController from './controllers/Pedidos.controller';
 import ProductController from './controllers/Product.controller';
 const express = require('express');
 const cors = require('cors');
@@ -19,6 +20,7 @@ class Server{
         this.app.use('/',new IndexController().router);
         this.app.use('/empleado',new EmployeeController().router);
         this.app.use('/producto',new ProductController().router);
+        this.app.use('/pedidos',new PedidosController().router)
     }
     public start():void{
         this.app.listen(this.app.get('PORT'),()=>{

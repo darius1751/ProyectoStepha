@@ -6,7 +6,7 @@ export default class EmployeeRouter{
     public async login(req:Request,res:Response):Promise<any>{
         const connection:Connection = await new Conexion().connection();
         const {user,password} = req.body;
-        const {key=null} = req.query;
+        const {key=null} = req.headers;
         if(key === '12345'){
             const result = await connection.query(`SELECT emp.id,p.nombre AS 'name',p.cedula AS 'identification',p.direccion AS 'direction',p.telefono AS 'phone',emp.sueldo AS 'salary', 
                 p.id AS 'personId',emp.comision AS 'commision',

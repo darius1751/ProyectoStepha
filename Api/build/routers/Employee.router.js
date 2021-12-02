@@ -49,7 +49,7 @@ var EmployeeRouter = /** @class */ (function () {
                     case 1:
                         connection = _d.sent();
                         _a = req.body, user = _a.user, password = _a.password;
-                        _b = req.query.key, key = _b === void 0 ? null : _b;
+                        _b = req.headers.key, key = _b === void 0 ? null : _b;
                         if (!(key === '12345')) return [3 /*break*/, 3];
                         return [4 /*yield*/, connection.query("SELECT emp.id,p.nombre AS 'name',p.cedula AS 'identification',p.direccion AS 'direction',p.telefono AS 'phone',emp.sueldo AS 'salary', \n                p.id AS 'personId',emp.comision AS 'commision',\n                c.id AS 'cargoId',\n                c.nombre AS 'positionName'\n                FROM usuario AS us\n                INNER JOIN empleado AS emp \n                ON us.id = emp.usuario_id\n                INNER JOIN persona AS p \n                ON p.id = emp.persona_id\n                INNER JOIN cargo AS c\n                ON emp.cargo_id = c.id\n                WHERE usuario = ? AND contrasenia = ?", [user, password])];
                     case 2:

@@ -57,6 +57,7 @@ var ProductRouter = /** @class */ (function () {
                             var id = value.id, name = value.name, photo = value.photo, priceUnit = value.priceUnit, cant = value.cant, categoryId = value.categoryId, categoryName = value.categoryName;
                             data.push({ id: id, cant: cant, category: { id: categoryId, name: categoryName }, photo: photo, name: name, priceUnit: priceUnit });
                         });
+                        conextion.destroy();
                         res.send(data);
                         return [2 /*return*/];
                 }
@@ -74,6 +75,7 @@ var ProductRouter = /** @class */ (function () {
                         return [4 /*yield*/, new Conexion_1["default"]().connection()];
                     case 1:
                         conexion = _d.sent();
+                        conexion.destroy();
                         _c = (_b = res).send;
                         return [4 /*yield*/, conexion.query('UPDATE producto SET cantidad=? WHERE id = ?', [cant, id])];
                     case 2:
@@ -125,7 +127,7 @@ var ProductRouter = /** @class */ (function () {
     };
     ProductRouter.prototype.getProductsByCategories = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var key, connection, categories, result, _i, categories_1, category, data, index, _a, data_2, d, id, name_1, ex_1;
+            var key, connection, categories, result, _i, categories_1, category, data, index, _a, data_2, d, id, name_1, e_2;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -168,12 +170,12 @@ var ProductRouter = /** @class */ (function () {
                         res.status(200).send(result);
                         return [3 /*break*/, 9];
                     case 8:
-                        res.status(200).send({ message: 'Nada' });
+                        res.status(511).send({ error: 511, message: 'Necesitas autentificacion para acceder a la informacion, verifica la propiedad key' });
                         _b.label = 9;
                     case 9: return [3 /*break*/, 11];
                     case 10:
-                        ex_1 = _b.sent();
-                        res.status(411).send({ ex: ex_1 });
+                        e_2 = _b.sent();
+                        res.status(500).send({ error: 500, message: 'Se a producido un error', exception: e_2 });
                         return [3 /*break*/, 11];
                     case 11: return [2 /*return*/];
                 }
@@ -182,15 +184,15 @@ var ProductRouter = /** @class */ (function () {
     };
     ProductRouter.prototype.postSalesProduct = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, key, conexion, _b, personData, sales, identification, priceToPay, _i, sales_1, value, cant, price, productId, iva, client, clientId, name_2, phone, direction, person, client_1, id, _c, sales_2, value, cant, price, productId, e_2;
+            var _a, key, conexion, _b, personData, sales, identification, priceToPay, _i, sales_1, value, cant, price, productId, iva, client, clientId, name_2, phone, direction, insert, client_1, id, _c, sales_2, value, cant, price, productId, e_3;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
                         _a = req.headers.key, key = _a === void 0 ? null : _a;
-                        if (!(key === '12345')) return [3 /*break*/, 21];
+                        if (!(key === '12345')) return [3 /*break*/, 19];
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 19, , 20]);
+                        _d.trys.push([1, 17, , 18]);
                         return [4 /*yield*/, new Conexion_1["default"]().connection()];
                     case 2:
                         conexion = _d.sent();
@@ -218,60 +220,55 @@ var ProductRouter = /** @class */ (function () {
                     case 7:
                         client = (_d.sent())[0];
                         clientId = client ? client.id : 0;
-                        if (!!clientId) return [3 /*break*/, 12];
+                        if (!!clientId) return [3 /*break*/, 10];
                         name_2 = personData.name, phone = personData.phone, direction = personData.direction;
                         return [4 /*yield*/, conexion.query('INSERT INTO persona(cedula,nombre,telefono,direccion) VALUES(?,?,?,?)', [identification, name_2, phone, direction])];
                     case 8:
-                        _d.sent();
-                        return [4 /*yield*/, conexion.query('SELECT id FROM persona ORDER BY id DESC LIMIT 1')];
+                        insert = _d.sent();
+                        return [4 /*yield*/, conexion.query('INSERT INTO cliente(persona_id) VALUES(?)', [insert.insertId])];
                     case 9:
-                        person = _d.sent();
-                        return [4 /*yield*/, conexion.query('INSERT INTO cliente(persona_id) VALUES(?)', [person[0].id])];
-                    case 10:
-                        _d.sent();
-                        return [4 /*yield*/, conexion.query('SELECT id FROM cliente ORDER BY id DESC LIMIT 1')];
-                    case 11:
                         client_1 = _d.sent();
-                        clientId = client_1[0].id;
-                        _d.label = 12;
-                    case 12: return [4 /*yield*/, conexion.query("INSERT INTO factura_venta(cliente_id,precio_a_pagar,fecha,iva) VALUES(?,?,?,?)", [clientId, priceToPay, new Date(), iva])];
-                    case 13:
+                        clientId = client_1.insertId;
+                        _d.label = 10;
+                    case 10: return [4 /*yield*/, conexion.query("INSERT INTO factura_venta(cliente_id,precio_a_pagar,fecha,iva) VALUES(?,?,?,?)", [clientId, priceToPay, new Date(), iva])];
+                    case 11:
                         _d.sent();
                         return [4 /*yield*/, conexion.query("SELECT id FROM factura_venta ORDER BY id DESC LIMIT 1")];
-                    case 14:
+                    case 12:
                         id = (_d.sent())[0].id;
                         _c = 0, sales_2 = sales;
-                        _d.label = 15;
-                    case 15:
-                        if (!(_c < sales_2.length)) return [3 /*break*/, 18];
+                        _d.label = 13;
+                    case 13:
+                        if (!(_c < sales_2.length)) return [3 /*break*/, 16];
                         value = sales_2[_c];
                         cant = value.cant, price = value.price, productId = value.productId;
                         return [4 /*yield*/, conexion.query("INSERT INTO venta(factura_venta_id,precio,cantidad,producto_id) VALUES(?,?,?,?)", [id, price, cant, productId])];
-                    case 16:
+                    case 14:
                         _d.sent();
-                        _d.label = 17;
-                    case 17:
+                        _d.label = 15;
+                    case 15:
                         _c++;
-                        return [3 /*break*/, 15];
-                    case 18:
+                        return [3 /*break*/, 13];
+                    case 16:
+                        conexion.destroy();
                         res.status(200).send({ identification: identification, sales: sales, priceToPay: priceToPay, iva: iva });
-                        return [3 /*break*/, 20];
+                        return [3 /*break*/, 18];
+                    case 17:
+                        e_3 = _d.sent();
+                        res.status(500).send({ code: 500, message: 'Se a producido un error', exception: e_3 });
+                        return [3 /*break*/, 18];
+                    case 18: return [3 /*break*/, 20];
                     case 19:
-                        e_2 = _d.sent();
-                        res.status(500).send({ code: 500, message: 'Se a producido un error', exception: e_2 });
-                        return [3 /*break*/, 20];
-                    case 20: return [3 /*break*/, 22];
-                    case 21:
                         res.status(511).send({ code: 511, message: 'Necesitas autentificacion para acceder a la informacion, verifica la propiedad key' });
-                        _d.label = 22;
-                    case 22: return [2 /*return*/];
+                        _d.label = 20;
+                    case 20: return [2 /*return*/];
                 }
             });
         });
     };
     ProductRouter.prototype.postAddProducts = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, name, _b, photo, price_unit, cant, category, _c, key, con, e_3;
+            var _a, name, _b, photo, price_unit, cant, category, _c, key, con, e_4;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -287,11 +284,12 @@ var ProductRouter = /** @class */ (function () {
                         return [4 /*yield*/, con.query('INSERT INTO producto(nombre,foto,precio_unitario,cantidad,categoria_id) VALUES(?,?,?,?,?)', [name, photo, price_unit, cant, category])];
                     case 3:
                         _d.sent();
+                        con.destroy();
                         res.status(200).send({ code: 200, message: 'Se a registrado correctamente el nuevo producto' });
                         return [3 /*break*/, 5];
                     case 4:
-                        e_3 = _d.sent();
-                        res.status(500).send({ code: 500, message: 'Se a producido un error', exception: e_3 });
+                        e_4 = _d.sent();
+                        res.status(500).send({ code: 500, message: 'Se a producido un error', exception: e_4 });
                         return [3 /*break*/, 5];
                     case 5: return [3 /*break*/, 7];
                     case 6:

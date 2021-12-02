@@ -2,6 +2,7 @@
 exports.__esModule = true;
 var Employee_controller_1 = require("./controllers/Employee.controller");
 var Index_controller_1 = require("./controllers/Index.controller");
+var Pedidos_controller_1 = require("./controllers/Pedidos.controller");
 var Product_controller_1 = require("./controllers/Product.controller");
 var express = require('express');
 var cors = require('cors');
@@ -19,6 +20,7 @@ var Server = /** @class */ (function () {
         this.app.use('/', new Index_controller_1["default"]().router);
         this.app.use('/empleado', new Employee_controller_1["default"]().router);
         this.app.use('/producto', new Product_controller_1["default"]().router);
+        this.app.use('/pedidos', new Pedidos_controller_1["default"]().router);
     };
     Server.prototype.start = function () {
         var _this = this;
